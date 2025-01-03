@@ -145,9 +145,14 @@ func (p *Process) process(ctx context.Context, schema, table string, attepmt int
 
 	if ok, err := p.Pg.TryAdvisoryLock(ctx, schema, table); err != nil {
 		return false, fmt.Errorf("can't try advisory lock: %v", err)
-	} else {
-		isLocked = ok
+	} 
+	
+	if !ok {
+		p.log.Warnf("Could not acquire advisory lock for table %s.%s", schema, table)
+		return false, fmt.Errorf("advisory lock not acquired for table %s.%s", schema, table)
 	}
+	
+	isLocked = ok
 
 	if isLocked {
 		p.log.Infof("Table %s.%s is locked, skipping defragmentation", schema, table)
